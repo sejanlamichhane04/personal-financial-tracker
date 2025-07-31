@@ -23,9 +23,10 @@ import { IncomeChart } from "@/components/income-chart"
 
 interface DashboardProps {
   onLogout: () => void
+  onProfileClick: () => void
 }
 
-export function Dashboard({ onLogout }: DashboardProps) {
+export function Dashboard({ onLogout, onProfileClick }: DashboardProps) {
   const [activeTab, setActiveTab] = useState("overview")
 
   // Mock data
@@ -64,7 +65,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
   return (
     <div className="flex h-screen bg-slate-900">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={onLogout} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={onLogout} onProfileClick={onProfileClick} />
 
       <main className="flex-1 overflow-auto">
         <div className="p-8">

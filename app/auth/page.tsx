@@ -1,4 +1,4 @@
-"use client"
+    "use client"
 import { AuthPage } from "@/components/auth-page"
 import { useRouter } from "next/navigation"
 

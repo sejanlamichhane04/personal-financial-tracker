@@ -4,5 +4,5 @@ import { useRouter } from "next/navigation"
 
 export default function DashboardPage() {
   const router = useRouter()
-  return <Dashboard onLogout={() => router.push("/auth")} />
+  return <Dashboard onLogout={() => router.push("/auth")} onProfileClick={() => router.push("/profile")} />
 } 
