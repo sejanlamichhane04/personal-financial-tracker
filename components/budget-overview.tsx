@@ -1,13 +1,22 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, AlertTriangle, CheckCircle, Target } from "lucide-react"
+import { AlertTriangle, CheckCircle, Target } from "lucide-react"
+import { BudgetPanel } from "@/components/budget-panel"
+
+interface Budget {
+  category: string
+  budgeted: number
+  spent: number
+  color: string
+  period?: string
+}
 
 export function BudgetOverview() {
-  const budgets = [
+  const [budgets, setBudgets] = useState<Budget[]>([
     {
       category: "Food & Dining",
       budgeted: 800,
@@ -44,7 +53,24 @@ export function BudgetOverview() {
       spent: 75,
       color: "bg-pink-500",
     },
-  ]
+  ])
+
+  const handleAddBudget = (newBudget: {
+    category: string
+    amount: number
+    period: string
+    color: string
+  }) => {
+    const budget: Budget = {
+      category: newBudget.category,
+      budgeted: newBudget.amount,
+      spent: 0, // New budgets start with 0 spent
+      color: newBudget.color,
+      period: newBudget.period,
+    }
+    
+    setBudgets(prev => [...prev, budget])
+  }
 
   const totalBudgeted = budgets.reduce((sum, budget) => sum + budget.budgeted, 0)
   const totalSpent = budgets.reduce((sum, budget) => sum + budget.spent, 0)
@@ -103,10 +129,7 @@ export function BudgetOverview() {
             </CardTitle>
             <CardDescription className="text-slate-400">Track your spending against your budget goals</CardDescription>
           </div>
-          <Button className="primary-solid text-white shadow-lg hover:bg-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Budget
-          </Button>
+          <BudgetPanel onAddBudget={handleAddBudget} />
         </CardHeader>
         <CardContent>
           <div className="space-y-8">
@@ -121,6 +144,11 @@ export function BudgetOverview() {
                     <div className="flex items-center space-x-3">
                       <div className={`w-4 h-4 rounded-full ${budget.color}`}></div>
                       <h4 className="font-semibold text-white text-lg">{budget.category}</h4>
+                      {budget.period && (
+                        <Badge variant="outline" className="text-xs border-white/20 text-slate-300">
+                          {budget.period}
+                        </Badge>
+                      )}
                       {isOverBudget && (
                         <Badge className="text-xs danger-solid text-white border-0">
                           <AlertTriangle className="w-3 h-3 mr-1" />
