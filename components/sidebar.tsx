@@ -12,6 +12,9 @@ import {
   TrendingUp,
   User,
   LogOut,
+  PiggyBank,
+  Calendar,
+  FileText,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -19,9 +22,12 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void
   onLogout: () => void
   onProfileClick: () => void
+  onGoalsClick: () => void
+  onBillsClick: () => void
+  onReportsClick: () => void
 }
 
-export function Sidebar({ activeTab, setActiveTab, onLogout, onProfileClick }: SidebarProps) {
+export function Sidebar({ activeTab, setActiveTab, onLogout, onProfileClick, onGoalsClick, onBillsClick, onReportsClick }: SidebarProps) {
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "transactions", label: "Transactions", icon: Receipt },
@@ -80,6 +86,30 @@ export function Sidebar({ activeTab, setActiveTab, onLogout, onProfileClick }: S
 
       {/* Additional Options */}
       <div className="space-y-3 pt-8 border-t border-white/10 mb-8">
+        <Button
+          variant="ghost"
+          className="w-full justify-start h-12 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl"
+          onClick={onGoalsClick}
+        >
+          <PiggyBank className="w-5 h-5 mr-4" />
+          <span className="font-medium">Goals</span>
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start h-12 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl"
+          onClick={onBillsClick}
+        >
+          <Calendar className="w-5 h-5 mr-4" />
+          <span className="font-medium">Bills</span>
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start h-12 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl"
+          onClick={onReportsClick}
+        >
+          <FileText className="w-5 h-5 mr-4" />
+          <span className="font-medium">Reports</span>
+        </Button>
         <Button
           variant="ghost"
           className="w-full justify-start h-12 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl"
