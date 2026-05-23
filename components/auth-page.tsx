@@ -9,15 +9,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
+import { ApiError, login, register } from "@/lib/api"
+import type { AuthSession } from "@/lib/finance"
 import { TrendingUp, Mail, Lock, User, Eye, EyeOff, Facebook, Chrome } from "lucide-react"
 
 interface AuthPageProps {
-  onAuthSuccess: () => void
+  onAuthSuccess: (session: AuthSession) => void
 }
+
+type AuthMode = "login" | "signup"
 
 export function AuthPage({ onAuthSuccess }: AuthPageProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<AuthMode>("login")
+  const [formError, setFormError] = useState("")
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -26,6 +32,7 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormError("")
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -34,27 +41,40 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError("")
+
+    if (activeTab === "signup" && formData.password !== formData.confirmPassword) {
+      setFormError("Passwords do not match.")
+      return
+    }
+
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const email = formData.email.trim().toLowerCase()
+      const session =
+        activeTab === "login"
+          ? await login(email, formData.password)
+          : await register(email, formData.password)
+
+      onAuthSuccess(session)
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setFormError(error.message)
+      } else {
+        setFormError("Something went wrong. Please try again.")
+      }
+    } finally {
       setIsLoading(false)
-      onAuthSuccess()
-    }, 2000)
+    }
   }
 
-  const handleSocialAuth = (provider: string) => {
-    setIsLoading(true)
-    // Simulate social auth
-    setTimeout(() => {
-      setIsLoading(false)
-      onAuthSuccess()
-    }, 1500)
+  const handleSocialAuth = () => {
+    setFormError("Google and Facebook sign-in are not connected yet.")
   }
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-10 left-10 w-40 h-40 bg-purple-500/5 rounded-full"></div>
         <div className="absolute top-32 right-20 w-32 h-32 bg-blue-500/5 rounded-full"></div>
@@ -63,7 +83,6 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
       </div>
 
       <div className="w-full max-w-md z-10">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto primary-solid rounded-2xl flex items-center justify-center shadow-2xl neon-glow-purple mb-4">
             <TrendingUp className="w-8 h-8 text-white" />
@@ -72,7 +91,6 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
           <p className="text-slate-400">Manage your finances with confidence</p>
         </div>
 
-        {/* Auth Card */}
         <Card className="premium-card border-0 shadow-2xl">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-2xl text-center text-white">Get Started</CardTitle>
@@ -81,7 +99,14 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="space-y-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) => {
+                setActiveTab(value as AuthMode)
+                setFormError("")
+              }}
+              className="space-y-6"
+            >
               <TabsList className="grid w-full grid-cols-2 glass-effect p-1 h-12">
                 <TabsTrigger
                   value="login"
@@ -150,21 +175,7 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="remember"
-                        className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-purple-600"
-                      />
-                      <Label htmlFor="remember" className="text-sm text-slate-300">
-                        Remember me
-                      </Label>
-                    </div>
-                    <Button variant="link" className="text-purple-400 hover:text-purple-300 p-0 h-auto">
-                      Forgot password?
-                    </Button>
-                  </div>
+                  {formError ? <p className="text-sm text-red-400">{formError}</p> : null}
 
                   <Button
                     type="submit"
@@ -267,24 +278,7 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="terms"
-                      className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-purple-600"
-                      required
-                    />
-                    <Label htmlFor="terms" className="text-sm text-slate-300">
-                      I agree to the{" "}
-                      <Button variant="link" className="text-purple-400 hover:text-purple-300 p-0 h-auto">
-                        Terms of Service
-                      </Button>{" "}
-                      and{" "}
-                      <Button variant="link" className="text-purple-400 hover:text-purple-300 p-0 h-auto">
-                        Privacy Policy
-                      </Button>
-                    </Label>
-                  </div>
+                  {formError ? <p className="text-sm text-red-400">{formError}</p> : null}
 
                   <Button
                     type="submit"
@@ -311,7 +305,7 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
                 <Button
                   variant="outline"
                   className="glass-effect border-white/20 text-white hover:bg-white/10 bg-transparent"
-                  onClick={() => handleSocialAuth("google")}
+                  onClick={handleSocialAuth}
                   disabled={isLoading}
                 >
                   <Chrome className="w-4 h-4 mr-2" />
@@ -320,7 +314,7 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
                 <Button
                   variant="outline"
                   className="glass-effect border-white/20 text-white hover:bg-white/10 bg-transparent"
-                  onClick={() => handleSocialAuth("facebook")}
+                  onClick={handleSocialAuth}
                   disabled={isLoading}
                 >
                   <Facebook className="w-4 h-4 mr-2" />
@@ -331,7 +325,6 @@ export function AuthPage({ onAuthSuccess }: AuthPageProps) {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className="text-center mt-8 text-sm text-slate-400">
           <p>© 2024 WealthTracker. All rights reserved.</p>
           <div className="flex justify-center space-x-4 mt-2">
